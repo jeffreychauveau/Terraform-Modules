@@ -1,5 +1,4 @@
 variable "bucket_name" {}
-variable "bucket_acl" {}
 variable "versioning" {
     type = bool
 }

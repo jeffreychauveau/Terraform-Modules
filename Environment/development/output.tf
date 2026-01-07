@@ -1,4 +1,4 @@
-output "public_ip" {
+/*output "public_ip" {
   value = module.my-ec2.ec2_public_ips
 }
 output "ec2_private_ips" {
