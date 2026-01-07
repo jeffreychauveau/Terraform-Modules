@@ -2,19 +2,18 @@ provider "aws" {
   region = "us-east-1"
   profile = "default"
 }
-
+/*
 module "my-vpc" {
   source      = "../../Modules/vpc"
   vpc_name    = "my-vpc-87031"
   vpc_cidr    = "10.0.0.0/16"
   environment = "development"
-  enable_nat_gateway = true
-}
+  enable_nat_gateway = false
+}*/
 
 module "my-s3" {
   source = "../../Modules/s3"
   bucket_name = "s3-87031"
-  bucket_acl = "private"
   lb_log_policy = false
   versioning = false
 }
