@@ -37,6 +37,3 @@ __pycache__/
 # Local editors/macos files
 .DS_Store
 .idea
-
-# Ignore Terraform Executable
-**/terraform-provider-aws*.exe
