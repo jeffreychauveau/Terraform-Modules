@@ -11,6 +11,14 @@ module "my-vpc" {
   enable_nat_gateway = true
 }
 
+module "my-s3" {
+  source = "../../Modules/s3"
+  bucket_name = "s3-87031"
+  bucket_acl = "private"
+  lb_log_policy = false
+  versioning = false
+}
+/*
 module "my-ec2" {
   source                = "../../Modules/ec2"
   instance_name         = "ec2-87031"
@@ -112,7 +120,7 @@ module "my-alb" {
     target_group_key = "http-tg"
     port             = 80
   }
-}
+}*/
 /*
 module "my-ssh-sg" {
   source  = "../../Modules/sg"
