@@ -16,6 +16,6 @@ output "alb_security_group_id" {
 output "alb_dns_name" {
   value = module.my-alb.alb_dns_name
 }
-output "nlb_dns_name" {
+/*output "nlb_dns_name" {
   value = module.my-nlb.nlb_dns_name
-}
+}*/
