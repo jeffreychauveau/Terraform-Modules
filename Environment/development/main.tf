@@ -8,17 +8,18 @@ module "my-vpc" {
   vpc_name    = "my-vpc-87031"
   vpc_cidr    = "10.0.0.0/16"
   environment = "development"
+  enable_nat_gateway = true
 }
 
 module "my-ec2" {
   source                = "../../Modules/ec2"
   instance_name         = "ec2-87031"
-  subnet_ids            = module.my-vpc.public_subnets
+  subnet_ids            = module.my-vpc.private_subnets
   security_group_vpc_id = module.my-vpc.vpc_id
-  security_group_id     = [module.my-http-sg.sg_id, module.my-ssh-sg.sg_id]
+  security_group_id     = [module.my-http-sg.sg_id]
   ec2_count             = 2
   create_security_group = false
-  eip                   = true
+  eip                   = false
   user_data             = <<-EOF
       #!/bin/bash
       sudo dnf update -y
@@ -112,7 +113,7 @@ module "my-alb" {
     port             = 80
   }
 }
-
+/*
 module "my-ssh-sg" {
   source  = "../../Modules/sg"
   sg_name = "ssh-sg"
@@ -174,4 +175,4 @@ module "my-nlb" {
     target_group_key = "ssh-tg"
     port             = 22
   }
-}
+}*/

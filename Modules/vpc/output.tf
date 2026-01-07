@@ -30,3 +30,7 @@ output "private_subnets_cidr_blocks" {
   description = "List of cidr_blocks of private subnets"
   value       = module.vpc.private_subnets_cidr_blocks
 }
+output "nat_public_ips" {
+  description = "List of public Elastic IPs created for AWS NAT Gateway"
+  value       = module.vpc.nat_public_ips
+}
