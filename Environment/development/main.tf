@@ -11,6 +11,18 @@ module "my-vpc" {
   enable_nat_gateway = false
 }
 
+module "computed_sg" {
+  source = "../../Modules/csg"
+  sg_name = "comp_sg"
+  vpc_id = module.my-vpc.vpc_id
+  ingress_egress_rules = [{
+    ingress_cidr = "http-80-tcp"
+  }]
+  create_rules = [{
+    ingress_with_cidr = 1
+    egress_with_cidr = 1
+  }]
+}
 ## Use ASG only with VPC, Module creates security groups, elb, ec2, and sg
 /*module "my-asg" {
   source = "../../Modules/asg"
@@ -36,27 +48,27 @@ module "my-s3" {
   bucket_name = "s3-87031"
   lb_log_policy = false
   versioning = false
-}
+}*/
 
 module "my-ec2" {
   source                = "../../Modules/ec2"
   instance_name         = "ec2-87031"
-  subnet_ids            = module.my-vpc.private_subnets
+  subnet_ids            = module.my-vpc.public_subnets
   security_group_vpc_id = module.my-vpc.vpc_id
-  security_group_id     = [module.my-http-sg.sg_id]
-  ec2_count             = 2
+  security_group_id     = [module.computed_sg.computed_sg_id]
+  ec2_count             = 1
   create_security_group = false
-  eip                   = false
+  eip                   = true
   user_data             = <<-EOF
       #!/bin/bash
       sudo dnf update -y
       sudo dnf install -y httpd
       sudo systemctl start httpd
       sudo systemctl enable httpd
-      echo "<html><h1>Welcome to $(hostname -f) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
+      echo "<html><h1>Welcome to $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
   EOF
 }
-
+/*
 module "my-http-sg" {
   source  = "../../Modules/sg"
   sg_name = "http-sg"
