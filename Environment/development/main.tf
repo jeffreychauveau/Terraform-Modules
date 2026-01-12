@@ -2,22 +2,42 @@ provider "aws" {
   region = "us-east-1"
   profile = "default"
 }
-/*
+
 module "my-vpc" {
   source      = "../../Modules/vpc"
   vpc_name    = "my-vpc-87031"
   vpc_cidr    = "10.0.0.0/16"
   environment = "development"
   enable_nat_gateway = false
-}*/
+}
 
+## Use ASG only with VPC, Module creates security groups, elb, ec2, and sg
+/*module "my-asg" {
+  source = "../../Modules/asg"
+  asg_name = "my-asg"
+  vpc_id = module.my-vpc.vpc_id
+  vpc_cidr_block = module.my-vpc.vpc_cidr_block
+  vpc_public_subnets = module.my-vpc.public_subnets
+  asg_min_size = 1
+  asg_max_size = 2
+  asg_desired_capacity = 1
+  user_data = <<-EOF
+      #!/bin/bash
+      sudo dnf update -y
+      sudo dnf install -y httpd
+      sudo systemctl start httpd
+      sudo systemctl enable httpd
+      echo "<html><h1>Welcome to $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
+  EOF
+}*/
+/*
 module "my-s3" {
   source = "../../Modules/s3"
   bucket_name = "s3-87031"
   lb_log_policy = false
   versioning = false
 }
-/*
+
 module "my-ec2" {
   source                = "../../Modules/ec2"
   instance_name         = "ec2-87031"
@@ -86,7 +106,7 @@ module "my-alb" {
       to_port                      = 80
       protocol                     = "HTTP"
       type                         = "egress"
-      referenced_security_group_id = module.my-http-sg.sg_id
+      referenced_security_group_id = module.my-vpc.vpc_cidr_block
     }
   }
   lb_listeners = {
