@@ -89,7 +89,7 @@ module "my-http-sg" {
 }*/
 
 /*module "my-alb" {
-  source                = "../../Modules/alb"
+  source                = "../../Modules/elb"
   lb_name              = "alb"
   lb_type               = "application"
   public_subnet_ids     = module.my-vpc.public_subnets
@@ -173,7 +173,7 @@ module "my-http-sg" {
 }*/
 
 /*module "my-nlb" {
-  source                = "../../Modules/nlb"
+  source                = "../../Modules/elb"
   lb_name              = "nlb"
   lb_type               = "network"
   public_subnet_ids     = module.my-vpc.public_subnets
