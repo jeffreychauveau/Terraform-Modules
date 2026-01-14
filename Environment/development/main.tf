@@ -11,18 +11,19 @@ module "my-vpc" {
   enable_nat_gateway = false
 }
 
-module "computed_sg" {
+/*module "http-sg" {
   source = "../../Modules/csg"
   sg_name = "comp_sg"
   vpc_id = module.my-vpc.vpc_id
   ingress_egress_rules = [{
-    ingress_cidr = "http-80-tcp"
+    ingress_sg = "http-80-tcp"
+    ingress_sg_id = module.my-alb.alb_security_group_id
   }]
   create_rules = [{
-    ingress_with_cidr = 1
+    ingress_with_sg = 1
     egress_with_cidr = 1
   }]
-}
+}*/
 ## Use ASG only with VPC, Module creates security groups, elb, ec2, and sg
 /*module "my-asg" {
   source = "../../Modules/asg"
@@ -50,12 +51,12 @@ module "my-s3" {
   versioning = false
 }*/
 
-module "my-ec2" {
+/*module "my-ec2" {
   source                = "../../Modules/ec2"
   instance_name         = "ec2-87031"
   subnet_ids            = module.my-vpc.public_subnets
   security_group_vpc_id = module.my-vpc.vpc_id
-  security_group_id     = [module.computed_sg.computed_sg_id]
+  security_group_id     = [module.http-sg.sg_id]
   ec2_count             = 1
   create_security_group = false
   eip                   = true
@@ -67,7 +68,7 @@ module "my-ec2" {
       sudo systemctl enable httpd
       echo "<html><h1>Welcome to $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
   EOF
-}
+}*/
 /*
 module "my-http-sg" {
   source  = "../../Modules/sg"
@@ -85,9 +86,9 @@ module "my-http-sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }]
-}
+}*/
 
-module "my-alb" {
+/*module "my-alb" {
   source                = "../../Modules/alb"
   lb_name              = "alb"
   lb_type               = "application"
@@ -118,7 +119,7 @@ module "my-alb" {
       to_port                      = 80
       protocol                     = "HTTP"
       type                         = "egress"
-      referenced_security_group_id = module.my-vpc.vpc_cidr_block
+      cidr_ipv4 = "10.0.0.0/16"
     }
   }
   lb_listeners = {
@@ -152,8 +153,8 @@ module "my-alb" {
     port             = 80
   }
 }*/
-/*
-module "my-ssh-sg" {
+
+/*module "my-ssh-sg" {
   source  = "../../Modules/sg"
   sg_name = "ssh-sg"
   vpc_id  = module.my-vpc.vpc_id
@@ -169,9 +170,9 @@ module "my-ssh-sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }]
-}
+}*/
 
-module "my-nlb" {
+/*module "my-nlb" {
   source                = "../../Modules/nlb"
   lb_name              = "nlb"
   lb_type               = "network"

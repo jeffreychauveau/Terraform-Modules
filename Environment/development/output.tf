@@ -1,4 +1,4 @@
-/*output "public_ip" {
+output "public_ip" {
   value = module.my-ec2.ec2_public_ips
 }
 output "ec2_private_ips" {
@@ -6,9 +6,6 @@ output "ec2_private_ips" {
 }
 output "ec2_instance_ids" {
   value = module.my-ec2.ec2_instance_ids
-}
-output "http_security_group_ids" {
-  value = module.my-http-sg.sg_id
 }
 output "alb_security_group_id" {
   value = module.my-alb.alb_security_group_id
