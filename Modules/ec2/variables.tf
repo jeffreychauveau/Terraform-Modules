@@ -1,5 +1,5 @@
 variable "instance_type" {
-  default = "t3a.nano"
+  default = "t4g.nano"
 }
 variable "instance_name" {}
 variable "subnet_ids" {}

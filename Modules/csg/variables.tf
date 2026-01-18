@@ -2,7 +2,8 @@ variable "sg_name" {}
 variable "vpc_id" {}
 variable "ingress_egress_rules" {
   type = list(object({
-    ingress_cidr = optional(string, "all-all")
+    ingress_ports = optional(string, "all-all")
+    ingress_cidr = optional(string, "0.0.0.0/0")
     ingress_sg = optional(string, "all-all")
     ingress_sg_id = optional(string)
     egress_cidr = optional(string, "all-all")

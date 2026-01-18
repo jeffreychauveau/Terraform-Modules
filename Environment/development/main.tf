@@ -9,6 +9,50 @@ module "my-vpc" {
   vpc_cidr    = "10.0.0.0/16"
   environment = "development"
   enable_nat_gateway = false
+  create_database_subnet_group = false
+}
+
+module "my-rds" {
+  source = "../../Modules/rds/mysql"
+  rds_identifier = "mysql-db"
+  rds_db_engine = [{
+    engine = "mysql"
+    engine_version = "8.0"
+    major_engine_version = "8.0"
+    family = "mysql8.0"
+    instance_class = "db.t4g.micro"
+    allocated_storage = 5
+    multi_az = false
+  }]
+  rds_db_info = [{
+    db_name = "mytestdb"
+    username = "admin"
+    port = "3306"
+    password_wo = "masterPassword"
+    password_wo_version = 1
+    manage_master_user_password = false
+    skip_final_snapshot = false
+  }]
+  rds_db_sg = [{
+    create_db_subnet_group = true
+    subnet_ids = module.my-vpc.database_subnets
+    vpc_security_group_ids = module.rds-sg.sg_id
+  }]
+}
+
+module "rds-sg" {
+  source = "../../Modules/csg"
+  sg_name = "mysql-sg"
+  vpc_id = module.my-vpc.vpc_id
+  ingress_egress_rules = [{
+    ingress_ports = "mysql-tcp"
+    ingress_cidr = "10.0.0.0/16"
+    ingress_sg = "mysql-tcp"
+  }]
+  create_rules = [{
+    ingress_with_cidr = 1
+    egress_with_cidr = 1
+  }]
 }
 
 /*module "http-sg" {

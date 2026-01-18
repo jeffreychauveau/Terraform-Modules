@@ -4,8 +4,8 @@ module "sg" {
   vpc_id = var.vpc_id
 
   computed_ingress_with_cidr_blocks = [{
-    rule = var.ingress_egress_rules[0].ingress_cidr
-    cidr_blocks = "0.0.0.0/0"
+    rule = var.ingress_egress_rules[0].ingress_ports
+    cidr_blocks = var.ingress_egress_rules[0].ingress_cidr
   }]
   number_of_computed_ingress_with_cidr_blocks = var.create_rules[0].ingress_with_cidr
 
