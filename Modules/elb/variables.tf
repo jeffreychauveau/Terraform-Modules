@@ -13,25 +13,25 @@ variable "create_security_group" {
 }
 variable "ingress_rules" {
   type = map(object({
-    from_port   = number
-    to_port     = number
-    protocol    = optional(string, "HTTP")
-    type        = optional(string, "ingress")
+    from_port                    = number
+    to_port                      = number
+    protocol                     = optional(string, "HTTP")
+    type                         = optional(string, "ingress")
     referenced_security_group_id = optional(string)
-    cidr_ipv4   = optional(string)
-    description = optional(string)
+    cidr_ipv4                    = optional(string)
+    description                  = optional(string)
   }))
   default = {}
 }
 variable "egress_rules" {
   type = map(object({
-    from_port   = number
-    to_port     = number
-    protocol    = optional(string, "HTTP")
-    type        = optional(string, "egress")
+    from_port                    = number
+    to_port                      = number
+    protocol                     = optional(string, "HTTP")
+    type                         = optional(string, "egress")
     referenced_security_group_id = optional(string)
-    cidr_ipv4   = optional(string)
-    description = optional(string)
+    cidr_ipv4                    = optional(string)
+    description                  = optional(string)
   }))
   default = {}
 }

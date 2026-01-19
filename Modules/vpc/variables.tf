@@ -1,11 +1,11 @@
 variable "vpc_name" {}
 variable "vpc_cidr" {}
 variable "enable_nat_gateway" {
-  type = bool
+  type    = bool
   default = false
 }
 variable "create_database_subnet_group" {
-  type = bool
+  type    = bool
   default = false
 }
 variable "availability_zones" {

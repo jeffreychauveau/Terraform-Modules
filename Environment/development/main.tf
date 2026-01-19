@@ -1,18 +1,28 @@
 provider "aws" {
-  region = "us-east-1"
+  region  = "us-east-1"
   profile = "default"
 }
 
 module "my-vpc" {
-  source      = "../../Modules/vpc"
-  vpc_name    = "my-vpc-87031"
-  vpc_cidr    = "10.0.0.0/16"
-  environment = "development"
-  enable_nat_gateway = false
+  source                       = "../../Modules/vpc"
+  vpc_name                     = "my-vpc-87031"
+  vpc_cidr                     = "10.0.0.0/16"
+  environment                  = "development"
+  enable_nat_gateway           = false
   create_database_subnet_group = false
 }
 
-module "my-rds" {
+module "my-dynamodb" {
+  source = "../../Modules/rds/dynamodb"
+  db_table_info = [{
+    name      = "db-table"
+    hash_key  = "id"
+    range_key = "title"
+  }]
+  autoscaling_enabled = false
+}
+
+/*module "my-rds" {
   source = "../../Modules/rds/mysql"
   rds_identifier = "mysql-db"
   rds_db_engine = [{
@@ -38,9 +48,9 @@ module "my-rds" {
     subnet_ids = module.my-vpc.database_subnets
     vpc_security_group_ids = module.rds-sg.sg_id
   }]
-}
+}*/
 
-module "rds-sg" {
+/*module "rds-sg" {
   source = "../../Modules/csg"
   sg_name = "mysql-sg"
   vpc_id = module.my-vpc.vpc_id
@@ -53,7 +63,7 @@ module "rds-sg" {
     ingress_with_cidr = 1
     egress_with_cidr = 1
   }]
-}
+}*/
 
 /*module "http-sg" {
   source = "../../Modules/csg"

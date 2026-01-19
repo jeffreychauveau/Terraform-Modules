@@ -30,7 +30,7 @@ module "asg" {
   default_instance_warmup   = 300
   health_check_type         = "EC2"
   vpc_zone_identifier       = var.vpc_public_subnets
-#  service_linked_role_arn   = aws_iam_service_linked_role.autoscaling.arn
+  #  service_linked_role_arn   = aws_iam_service_linked_role.autoscaling.arn
 
   # Traffic source attachment
   traffic_source_attachments = {
@@ -63,9 +63,9 @@ module "asg" {
   }
 
   network_interfaces = [{
-    security_groups       = [module.asg_sg.security_group_id]
+    security_groups             = [module.asg_sg.security_group_id]
     associate_public_ip_address = true
-    
+
   }]
 }
 
