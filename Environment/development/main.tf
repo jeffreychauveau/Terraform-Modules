@@ -12,7 +12,50 @@ module "my-vpc" {
   create_database_subnet_group = false
 }
 
-module "my-dynamodb" {
+/*module "postgres-rds" {
+  source = "../../Modules/rds/db"
+  rds_identifier = "my-postgres"
+  rds_db_engine = [{
+    engine = "postgres"
+    engine_version = "17"
+    family = "postgres17"
+    major_engine_version = "17"
+    instance_class = "db.t4g.micro"
+    multi_az = false
+    allocated_storage = 5
+  }]
+  rds_db_info = [{
+    db_name = "pgres"
+    username = "myuser"
+    port = 5432
+    password_wo = "masterPassword"
+    password_wo_version = 1
+    manage_master_user_password = false
+    skip_final_snapshot = true
+  }]
+  rds_db_sg = [{
+   create_db_subnet_group = true
+   subnet_ids = module.my-vpc.database_subnets
+   vpc_security_group_ids = module.postgres-sg.sg_id
+  }]
+}*/
+
+/*module "postgres-sg" {
+  source = "../../Modules/csg"
+  sg_name = "postgres-sg"
+  vpc_id = module.my-vpc.vpc_id
+  ingress_egress_rules = [{
+    ingress_ports = "postgresql-tcp"
+    ingress_cidr = "10.0.0.0/16"
+    ingress_sg = "postgres-tcp"
+  }]
+  create_rules = [{
+    ingress_with_cidr = 1
+    egress_with_cidr = 1
+  }]
+}*/
+
+/*module "my-dynamodb" {
   source = "../../Modules/rds/dynamodb"
   db_table_info = [{
     name      = "db-table"
@@ -20,10 +63,10 @@ module "my-dynamodb" {
     range_key = "title"
   }]
   autoscaling_enabled = false
-}
+}*/
 
-/*module "my-rds" {
-  source = "../../Modules/rds/mysql"
+/*module "mysql-rds" {
+  source = "../../Modules/rds/db"
   rds_identifier = "mysql-db"
   rds_db_engine = [{
     engine = "mysql"
@@ -46,11 +89,11 @@ module "my-dynamodb" {
   rds_db_sg = [{
     create_db_subnet_group = true
     subnet_ids = module.my-vpc.database_subnets
-    vpc_security_group_ids = module.rds-sg.sg_id
+    vpc_security_group_ids = module.mysql-sg.sg_id
   }]
 }*/
 
-/*module "rds-sg" {
+/*module "mysql-sg" {
   source = "../../Modules/csg"
   sg_name = "mysql-sg"
   vpc_id = module.my-vpc.vpc_id
