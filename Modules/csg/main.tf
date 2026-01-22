@@ -16,8 +16,8 @@ module "sg" {
   number_of_computed_ingress_with_source_security_group_id = var.create_rules[0].ingress_with_sg
 
   computed_egress_with_cidr_blocks = [{
-    rule        = var.ingress_egress_rules[0].egress_cidr
-    cidr_blocks = "0.0.0.0/0"
+    rule        = var.ingress_egress_rules[0].egress_ports
+    cidr_blocks = var.ingress_egress_rules[0].egress_cidr
   }]
   number_of_computed_egress_with_cidr_blocks = var.create_rules[0].egress_with_cidr
 
