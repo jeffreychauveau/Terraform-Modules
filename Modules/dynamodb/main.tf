@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.7.0"
+    }
+  }
+}
 module "dynamodb_table" {
   source                                = "terraform-aws-modules/dynamodb-table/aws"
   name                                  = var.db_table_info[0].name

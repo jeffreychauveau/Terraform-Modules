@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.7.0"
+    }
+  }
+}
 module "db" {
   source = "terraform-aws-modules/rds/aws"
   ## REQUIRED Items
