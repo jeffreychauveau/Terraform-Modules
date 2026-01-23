@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.7.0"
+    }
+  }
+}
 module "sg" {
   source = "terraform-aws-modules/security-group/aws"
   name   = var.sg_name

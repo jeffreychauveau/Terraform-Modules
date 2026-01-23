@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.7.0"
+    }
+  }
+}
 module "alb" {
   source = "terraform-aws-modules/alb/aws"
 

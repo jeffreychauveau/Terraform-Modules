@@ -1,16 +1,286 @@
 provider "aws" {
+  alias = "east"
   region  = "us-east-1"
   profile = "default"
 }
-
-module "my-vpc" {
-  source                       = "../../Modules/vpc"
-  vpc_name                     = "my-vpc-87031"
-  vpc_cidr                     = "10.0.0.0/16"
-  environment                  = "development"
-  enable_nat_gateway           = false
-  create_database_subnet_group = false
+provider "aws" {
+  alias = "west"
+  region  = "us-west-2"
+  profile = "default"
 }
+
+## EAST REGION CONFIGURATION
+module "east-vpc" {
+  source                       = "../../Modules/vpc"
+  providers = {
+    aws = aws.east
+  }
+  vpc_name                     = "East-VPC"
+  vpc_cidr                     = "10.0.0.0/16"
+  environment                  = "east-dev"
+  enable_nat_gateway           = false
+  availability_zones = ["us-east-1a", "us-east-1b"]
+  private_subnets = ["10.0.101.0/24","10.0.102.0/24"]
+  public_subnets = ["10.0.1.0/24","10.0.2.0/24"]
+  database_subnets = ["10.0.111.0/24","10.0.112.0/24"]
+}
+module "east-ec2" {
+  source                = "../../Modules/ec2"
+  providers = {
+    aws = aws.east
+  }
+  instance_name         = "east-ec2"
+  subnet_ids            = module.east-vpc.public_subnets
+  security_group_vpc_id = module.east-vpc.vpc_id
+  security_group_id     = [module.east-http-sg.sg_id]
+  ec2_count             = 1
+  create_security_group = false
+  eip                   = true
+  user_data             = <<-EOF
+      #!/bin/bash
+      sudo dnf update -y
+      sudo dnf install -y httpd
+      sudo systemctl start httpd
+      sudo systemctl enable httpd
+      echo "<html><h1>Welcome to EAST $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
+  EOF
+}
+module "east-http-sg" {
+  source = "../../Modules/csg"
+  providers = {
+    aws = aws.east
+  }
+  sg_name = "east-http-sg"
+  vpc_id = module.east-vpc.vpc_id
+  ingress_egress_rules = [{
+    ingress_sg = "http-80-tcp"
+    ingress_sg_id = module.east-alb.alb_security_group_id
+  }]
+  create_rules = [{
+    ingress_with_sg = 1
+    egress_with_cidr = 1
+  }]
+}
+module "east-alb" {
+  source                = "../../Modules/elb"
+  providers = {
+    aws = aws.east
+  }
+  lb_name              = "alb"
+  lb_type               = "application"
+  public_subnet_ids     = module.east-vpc.public_subnets
+  vpc_id                = module.east-vpc.vpc_id
+  instance_ids          = module.east-ec2.ec2_instance_ids
+  vpc_cidr_block        = module.east-vpc.vpc_cidr_block
+  create_security_group = true
+  ingress_rules = {
+    "http-in" = {
+      from_port = 80
+      to_port   = 80
+      protocol  = "HTTP"
+      type      = "ingress"
+      cidr_ipv4 = "0.0.0.0/0"
+    }
+    "https-in" = {
+      from_port = 443
+      to_port   = 443
+      protocol  = "HTTPS"
+      type      = "ingress"
+      cidr_ipv4 = "0.0.0.0/0"
+    }
+  }
+  egress_rules = {
+    "http-out" = {
+      from_port                    = 80
+      to_port                      = 80
+      protocol                     = "HTTP"
+      type                         = "egress"
+      cidr_ipv4 = "10.0.0.0/16"
+    }
+  }
+  lb_listeners = {
+    ex-http = {
+      port     = 80
+      protocol = "HTTP"
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+    ex-https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = "arn:aws:acm:us-east-1:753047898568:certificate/c63037a4-caac-44e7-b06e-3cc472e5e0d6"
+      forward = {
+        target_group_key = "http-tg"
+      }
+    }
+  }
+  target_groups = {
+    http-tg = {
+      create_attachment = false
+      name_prefix       = "web-tg"
+      port              = 80
+    }
+  }
+  instance_attachments = {
+    target_group_key = "http-tg"
+    port             = 80
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## east REGION CONFIGURATION
+module "west-vpc" {
+  source = "../../Modules/vpc"
+  providers = {
+    aws = aws.west
+  }
+  vpc_name = "West-VPC"
+  vpc_cidr = "10.1.0.0/16"
+  environment = "west-dev"
+  enable_nat_gateway           = false
+  availability_zones = ["us-west-2a","us-west-2b"]
+  private_subnets = ["10.1.101.0/24","10.1.102.0/24"]
+  public_subnets = ["10.1.1.0/24","10.1.2.0/24"]
+  database_subnets = ["10.1.111.0/24","10.1.112.0/24"]
+}
+module "west-ec2" {
+  source                = "../../Modules/ec2"
+  providers = {
+    aws = aws.west
+  }
+  instance_name         = "west-ec2"
+  subnet_ids            = module.west-vpc.public_subnets
+  security_group_vpc_id = module.west-vpc.vpc_id
+  security_group_id     = [module.west-http-sg.sg_id]
+  ec2_count             = 1
+  create_security_group = false
+  eip                   = true
+  user_data             = <<-EOF
+      #!/bin/bash
+      sudo dnf update -y
+      sudo dnf install -y httpd
+      sudo systemctl start httpd
+      sudo systemctl enable httpd
+      echo "<html><h1>Welcome to WEST $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
+  EOF
+}
+module "west-http-sg" {
+  source = "../../Modules/csg"
+  providers = {
+    aws = aws.west
+  }
+  sg_name = "west-http-sg"
+  vpc_id = module.west-vpc.vpc_id
+  ingress_egress_rules = [{
+    ingress_sg = "http-80-tcp"
+    ingress_sg_id = module.west-alb.alb_security_group_id
+  }]
+  create_rules = [{
+    ingress_with_sg = 1
+    egress_with_cidr = 1
+  }]
+}
+module "west-alb" {
+  source                = "../../Modules/elb"
+  providers = {
+    aws = aws.west
+  }
+  lb_name              = "alb"
+  lb_type               = "application"
+  public_subnet_ids     = module.west-vpc.public_subnets
+  vpc_id                = module.west-vpc.vpc_id
+  instance_ids          = module.west-ec2.ec2_instance_ids
+  vpc_cidr_block        = module.west-vpc.vpc_cidr_block
+  create_security_group = true
+  ingress_rules = {
+    "http-in" = {
+      from_port = 80
+      to_port   = 80
+      protocol  = "HTTP"
+      type      = "ingress"
+      cidr_ipv4 = "0.0.0.0/0"
+    }
+    "https-in" = {
+      from_port = 443
+      to_port   = 443
+      protocol  = "HTTPS"
+      type      = "ingress"
+      cidr_ipv4 = "0.0.0.0/0"
+    }
+  }
+  egress_rules = {
+    "http-out" = {
+      from_port                    = 80
+      to_port                      = 80
+      protocol                     = "HTTP"
+      type                         = "egress"
+      cidr_ipv4 = "10.1.0.0/16"
+    }
+  }
+  lb_listeners = {
+    ex-http = {
+      port     = 80
+      protocol = "HTTP"
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+    ex-https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = "arn:aws:acm:us-west-2:753047898568:certificate/f33f7b83-63e4-4cc0-bc69-557f81671f6c"
+      forward = {
+        target_group_key = "http-tg"
+      }
+    }
+  }
+  target_groups = {
+    http-tg = {
+      create_attachment = false
+      name_prefix       = "web-tg"
+      port              = 80
+    }
+  }
+  instance_attachments = {
+    target_group_key = "http-tg"
+    port             = 80
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*module "postgres-rds" {
   source = "../../Modules/rds/db"
@@ -148,24 +418,6 @@ module "my-s3" {
   versioning = false
 }*/
 
-/*module "my-ec2" {
-  source                = "../../Modules/ec2"
-  instance_name         = "ec2-87031"
-  subnet_ids            = module.my-vpc.public_subnets
-  security_group_vpc_id = module.my-vpc.vpc_id
-  security_group_id     = [module.http-sg.sg_id]
-  ec2_count             = 1
-  create_security_group = false
-  eip                   = true
-  user_data             = <<-EOF
-      #!/bin/bash
-      sudo dnf update -y
-      sudo dnf install -y httpd
-      sudo systemctl start httpd
-      sudo systemctl enable httpd
-      echo "<html><h1>Welcome to $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
-  EOF
-}*/
 /*
 module "my-http-sg" {
   source  = "../../Modules/sg"

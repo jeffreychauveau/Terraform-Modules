@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.7.0"
+    }
+  }
+}
+
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = ">= 3.0.0"
