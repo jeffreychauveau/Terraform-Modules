@@ -8,8 +8,25 @@ provider "aws" {
   region  = "us-west-2"
   profile = "default"
 }
-
 ## EAST REGION CONFIGURATION
+module "east-route53" {
+  source = "../../Modules/r53"
+  record = {
+    alb_alias = {
+      name = "web"
+      type = "A"
+      set_identifier = "us-east-1"
+      weighted_routing_policy = {
+        weight = 50
+      }
+      alias = {
+        name = module.east-alb.alb_dns_name
+        zone_id = module.east-alb.zone_id
+        evaluate_target_health = true
+      }
+    }
+  }
+}
 module "east-vpc" {
   source                       = "../../Modules/vpc"
   providers = {
@@ -148,7 +165,25 @@ module "east-alb" {
 
 
 
-## east REGION CONFIGURATION
+## WEST REGION CONFIGURATION
+module "west-route53" {
+  source = "../../Modules/r53"
+  record = {
+    alb_alias = {
+      name = "web"
+      type = "A"
+      set_identifier = "us-west-1"
+      weighted_routing_policy = {
+        weight = 50
+      }
+      alias = {
+        name = module.west-alb.alb_dns_name
+        zone_id = module.west-alb.zone_id
+        evaluate_target_health = true
+      }
+    }
+  }
+}
 module "west-vpc" {
   source = "../../Modules/vpc"
   providers = {

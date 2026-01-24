@@ -12,7 +12,7 @@ data "aws_ami" "amazon_ami" {
 
   filter {
     name   = "name"
-    values = ["al2023-ami-2023.*-*"]
+    values = ["al2023-ami-2023.*-*arm64"]
   }
 
   filter {
