@@ -8,6 +8,7 @@ provider "aws" {
   region  = "us-west-2"
   profile = "default"
 }
+/*
 ## EAST REGION CONFIGURATION
 module "east-route53" {
   source = "../../Modules/r53"
@@ -146,6 +147,18 @@ module "east-alb" {
     port             = 80
   }
 }
+module "east-lambda" {
+  source = "../../Modules/lambda"
+  providers = {
+    aws = aws.east
+  }
+  function_name = "RedneckRenovations-Site"
+  description = "Redneck Renovations Website"
+  handler = "lambda_function.lambda_handler"
+  runtime = "python3.14"
+  source_path = "./src/lambda_function.py"
+  create_lambda_function_url = true
+}*/
 
 
 
@@ -163,8 +176,7 @@ module "east-alb" {
 
 
 
-
-
+/*
 ## WEST REGION CONFIGURATION
 module "west-route53" {
   source = "../../Modules/r53"
@@ -302,8 +314,7 @@ module "west-alb" {
     target_group_key = "http-tg"
     port             = 80
   }
-}
-
+}*/
 
 
 
