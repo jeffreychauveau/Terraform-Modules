@@ -38,12 +38,12 @@ module "alb" {
     }
   }
 
-  listeners                           = var.lb_listeners
-  target_groups                       = var.target_groups
-  additional_target_group_attachments = local.attachments
+  listeners     = var.lb_listeners
+  target_groups = var.target_groups
+  #  additional_target_group_attachments = local.attachments
 }
 
-locals {
+/*locals {
   instance_ids = var.instance_ids
   attachments = {
     for idx, inst_id in local.instance_ids : idx => {
@@ -52,4 +52,4 @@ locals {
       port             = var.instance_attachments.port
     }
   }
-}
+}*/

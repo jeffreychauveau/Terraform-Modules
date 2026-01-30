@@ -9,8 +9,8 @@ terraform {
 module "zone" {
   source = "terraform-aws-modules/route53/aws"
 
-  name = "redneckrenovations.click"
-  comment = "Public zone for personal domain"
+  name        = "redneckrenovations.click"
+  comment     = "Public zone for personal domain"
   create_zone = false
 
   records = var.record

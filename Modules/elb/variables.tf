@@ -6,7 +6,6 @@ variable "public_subnet_ids" {
 variable "lb_name" {}
 variable "vpc_id" {}
 variable "lb_type" {}
-variable "instance_ids" {}
 variable "vpc_cidr_block" {}
 variable "create_security_group" {
   type = bool
@@ -64,15 +63,4 @@ variable "target_groups" {
     target_type       = optional(string, "instance")
   }))
   default = {}
-}
-variable "instance_attachments" {
-  description = "Map of additional instance attachments across target groups. Key is arbitrary."
-  type = object({
-    target_group_key = string
-    port             = number
-  })
-  default = {
-    target_group_key = null
-    port             = null
-  }
 }

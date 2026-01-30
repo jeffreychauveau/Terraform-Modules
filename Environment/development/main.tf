@@ -1,10 +1,10 @@
 provider "aws" {
-  alias = "east"
+  alias   = "east"
   region  = "us-east-1"
   profile = "default"
 }
 provider "aws" {
-  alias = "west"
+  alias   = "west"
   region  = "us-west-2"
   profile = "default"
 }
@@ -27,22 +27,22 @@ module "east-route53" {
       }
     }
   }
-}
+}*/
 module "east-vpc" {
-  source                       = "../../Modules/vpc"
+  source = "../../Modules/vpc"
   providers = {
     aws = aws.east
   }
-  vpc_name                     = "East-VPC"
-  vpc_cidr                     = "10.0.0.0/16"
-  environment                  = "east-dev"
-  enable_nat_gateway           = false
+  vpc_name           = "East-VPC"
+  vpc_cidr           = "10.0.0.0/16"
+  environment        = "east-dev"
+  enable_nat_gateway = false
   availability_zones = ["us-east-1a", "us-east-1b"]
-  private_subnets = ["10.0.101.0/24","10.0.102.0/24"]
-  public_subnets = ["10.0.1.0/24","10.0.2.0/24"]
-  database_subnets = ["10.0.111.0/24","10.0.112.0/24"]
+  private_subnets    = ["10.0.101.0/24", "10.0.102.0/24"]
+  public_subnets     = ["10.0.1.0/24", "10.0.2.0/24"]
+  database_subnets   = ["10.0.111.0/24", "10.0.112.0/24"]
 }
-module "east-ec2" {
+/*module "east-ec2" {
   source                = "../../Modules/ec2"
   providers = {
     aws = aws.east
@@ -62,33 +62,48 @@ module "east-ec2" {
       sudo systemctl enable httpd
       echo "<html><h1>Welcome to EAST $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
   EOF
-}
+}*/
 module "east-http-sg" {
   source = "../../Modules/csg"
   providers = {
     aws = aws.east
   }
   sg_name = "east-http-sg"
-  vpc_id = module.east-vpc.vpc_id
-  ingress_egress_rules = [{
-    ingress_sg = "http-80-tcp"
+  vpc_id  = module.east-vpc.vpc_id
+  rules = [{
+    ingress_ports = "http-80-tcp"
     ingress_sg_id = module.east-alb.alb_security_group_id
   }]
   create_rules = [{
-    ingress_with_sg = 1
+    ingress_with_sg  = 1
+    egress_with_cidr = 1
+  }]
+}
+module "east-https-sg" {
+  source = "../../Modules/csg"
+  providers = {
+    aws = aws.east
+  }
+  sg_name = "east-https-sg"
+  vpc_id  = module.east-vpc.vpc_id
+  rules = [{
+    ingress_ports = "https-443-tcp"
+    #ingress_cidr = 
+  }]
+  create_rules = [{
+    ingress_with_cidr  = 1
     egress_with_cidr = 1
   }]
 }
 module "east-alb" {
-  source                = "../../Modules/elb"
+  source = "../../Modules/elb"
   providers = {
     aws = aws.east
   }
-  lb_name              = "alb"
+  lb_name               = "alb"
   lb_type               = "application"
   public_subnet_ids     = module.east-vpc.public_subnets
   vpc_id                = module.east-vpc.vpc_id
-  instance_ids          = module.east-ec2.ec2_instance_ids
   vpc_cidr_block        = module.east-vpc.vpc_cidr_block
   create_security_group = true
   ingress_rules = {
@@ -109,17 +124,18 @@ module "east-alb" {
   }
   egress_rules = {
     "http-out" = {
-      from_port                    = 80
-      to_port                      = 80
-      protocol                     = "HTTP"
-      type                         = "egress"
-      cidr_ipv4 = "10.0.0.0/16"
+      from_port = 80
+      to_port   = 80
+      protocol  = "HTTP"
+      type      = "egress"
+      cidr_ipv4 = "0.0.0.0/0"
     }
   }
   lb_listeners = {
     ex-http = {
       port     = 80
       protocol = "HTTP"
+      priority = 100
       redirect = {
         port        = "443"
         protocol    = "HTTPS"
@@ -135,6 +151,7 @@ module "east-alb" {
       }
     }
   }
+  ## Port that the ELB will connect to the EC2 Instance
   target_groups = {
     http-tg = {
       create_attachment = false
@@ -142,12 +159,8 @@ module "east-alb" {
       port              = 80
     }
   }
-  instance_attachments = {
-    target_group_key = "http-tg"
-    port             = 80
-  }
 }
-module "east-lambda" {
+/*module "east-lambda" {
   source = "../../Modules/lambda"
   providers = {
     aws = aws.east
@@ -159,8 +172,25 @@ module "east-lambda" {
   source_path = "./src/lambda_function.py"
   create_lambda_function_url = true
 }*/
-
-
+module "east-eb-app" {
+  source                = "../../Modules/beanstalk"
+  app_name              = "Dev-App"
+  environment           = "Development"
+  bucket_name = "elasticbeanstalk-us-east-1-753047898568"
+  key = "app-v1.zip"
+  vpc_id                = module.east-vpc.vpc_id
+  private_subnet_ids    = module.east-vpc.private_subnets
+  public_subnet_ids     = module.east-vpc.public_subnets
+  ec2_security_groups   = module.east-http-sg.sg_id
+  alb_security_group_id = module.east-https-sg.sg_id
+  alb_arn               = module.east-alb.arn
+  enable_shared_alb     = true
+  enable_public_ip = true
+  asg_min_size = 1
+  asg_max_size = 1
+  instance_type = "t4g.nano"
+  SSLCertificate_arn = "arn:aws:acm:us-east-1:753047898568:certificate/c63037a4-caac-44e7-b06e-3cc472e5e0d6"
+}
 
 
 
@@ -238,8 +268,8 @@ module "west-http-sg" {
   }
   sg_name = "west-http-sg"
   vpc_id = module.west-vpc.vpc_id
-  ingress_egress_rules = [{
-    ingress_sg = "http-80-tcp"
+  rules = [{
+    ingress_ports = "http-80-tcp"
     ingress_sg_id = module.west-alb.alb_security_group_id
   }]
   create_rules = [{
