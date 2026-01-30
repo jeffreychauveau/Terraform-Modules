@@ -79,22 +79,6 @@ module "east-http-sg" {
     egress_with_cidr = 1
   }]
 }
-module "east-https-sg" {
-  source = "../../Modules/csg"
-  providers = {
-    aws = aws.east
-  }
-  sg_name = "east-https-sg"
-  vpc_id  = module.east-vpc.vpc_id
-  rules = [{
-    ingress_ports = "https-443-tcp"
-    #ingress_cidr = 
-  }]
-  create_rules = [{
-    ingress_with_cidr = 1
-    egress_with_cidr  = 1
-  }]
-}
 module "east-alb" {
   source = "../../Modules/elb"
   providers = {
