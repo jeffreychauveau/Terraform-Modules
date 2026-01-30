@@ -91,8 +91,8 @@ module "east-https-sg" {
     #ingress_cidr = 
   }]
   create_rules = [{
-    ingress_with_cidr  = 1
-    egress_with_cidr = 1
+    ingress_with_cidr = 1
+    egress_with_cidr  = 1
   }]
 }
 module "east-alb" {
@@ -176,8 +176,8 @@ module "east-eb-app" {
   source                = "../../Modules/beanstalk"
   app_name              = "Dev-App"
   environment           = "Development"
-  bucket_name = "elasticbeanstalk-us-east-1-753047898568"
-  key = "app-v1.zip"
+  bucket_name           = "elasticbeanstalk-us-east-1-753047898568"
+  key                   = "app-v1.zip"
   vpc_id                = module.east-vpc.vpc_id
   private_subnet_ids    = module.east-vpc.private_subnets
   public_subnet_ids     = module.east-vpc.public_subnets
@@ -185,11 +185,11 @@ module "east-eb-app" {
   alb_security_group_id = module.east-https-sg.sg_id
   alb_arn               = module.east-alb.arn
   enable_shared_alb     = true
-  enable_public_ip = true
-  asg_min_size = 1
-  asg_max_size = 1
-  instance_type = "t4g.nano"
-  SSLCertificate_arn = "arn:aws:acm:us-east-1:753047898568:certificate/c63037a4-caac-44e7-b06e-3cc472e5e0d6"
+  enable_public_ip      = true
+  asg_min_size          = 1
+  asg_max_size          = 1
+  instance_type         = "t4g.nano"
+  SSLCertificate_arn    = "arn:aws:acm:us-east-1:753047898568:certificate/c63037a4-caac-44e7-b06e-3cc472e5e0d6"
 }
 
 

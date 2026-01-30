@@ -103,12 +103,12 @@ resource "aws_elastic_beanstalk_environment" "env" {
   setting {
     namespace = "aws:elbv2:listener:443"
     name      = "Rules"
-    value     = "default"   # ← key line: forces the default rule to  be created in the HTTPS:443 listener
+    value     = "default" # ← key line: forces the default rule to  be created in the HTTPS:443 listener
   }
   setting {
     namespace = "aws:elbv2:listener:443"
-    name = "SSLCertificateArns"
-    value = var.SSLCertificate_arn
+    name      = "SSLCertificateArns"
+    value     = var.SSLCertificate_arn
   }
   # Use the standard AWS-managed instance profile (works in most regions/accounts)
   setting {
