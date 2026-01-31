@@ -180,7 +180,7 @@ module "attach-ec2-elb" {
   target_group_arn = module.east-alb.alb_target_groups["http-tg"].arn
   target_ec2_id    = module.east-ec2.ec2_instance_ids[0]
 }
-## ASG uses VPC, elb, sg Modules
+## ASG uses VPC, elb, csg Modules
 module "east-asg" {
   source = "../../Modules/asg"
   asg_name = "east-asg"
