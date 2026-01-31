@@ -6,7 +6,7 @@ output "ec2_private_ips" {
 }
 output "ec2_instance_ids" {
   value = module.my-ec2.ec2_instance_ids
-}*/
+}
 output "alb_security_group_id" {
   value = module.east-alb.alb_security_group_id
 }
@@ -25,3 +25,7 @@ output "alb_target_groups" {
 /*output "nlb_dns_name" {
   value = module.my-nlb.nlb_dns_name
 }*/
+output "private_key" {
+  value = module.my-key.private_key
+  sensitive = true
+}

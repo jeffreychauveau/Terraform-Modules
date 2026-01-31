@@ -8,6 +8,10 @@ provider "aws" {
   region  = "us-west-2"
   profile = "default"
 }
+module "my-key" {
+  source = "../../Modules/key-pair"
+  key_name = "my-key"
+}
 /*
 ## EAST REGION CONFIGURATION
 module "east-route53" {
@@ -50,7 +54,7 @@ module "east-ec2" {
   instance_name         = "east-ec2"
   subnet_ids            = module.east-vpc.public_subnets
   security_group_vpc_id = module.east-vpc.vpc_id
-  security_group_id     = [module.east-http-sg.sg_id]
+  security_group_id     = [module.east-http-sg.sg_id,module.east-ssh-sg.sg_id]
   ec2_count             = 1
   create_security_group = false
   eip                   = true
@@ -72,14 +76,30 @@ module "east-http-sg" {
   vpc_id  = module.east-vpc.vpc_id
   rules = [{
     ingress_ports = "http-80-tcp"
-    ingress_sg_id = module.east-alb.alb_security_group_id
+    ingress_cidr = "0.0.0.0/0"
   }]
   create_rules = [{
-    ingress_with_sg  = 1
+    ingress_with_cidr  = 1
     egress_with_cidr = 1
   }]
 }
-module "east-alb" {
+module "east-ssh-sg" {
+  source = "../../Modules/csg"
+  providers = {
+    aws = aws.east
+  }
+  sg_name = "east-ssh-sg"
+  vpc_id  = module.east-vpc.vpc_id
+  rules = [{
+    ingress_ports = "ssh-tcp"
+    ingress_cidr = "0.0.0.0/0"
+  }]
+  create_rules = [{
+    ingress_with_cidr  = 1
+    egress_with_cidr = 1
+  }]
+}
+/*module "east-alb" {
   source = "../../Modules/elb"
   providers = {
     aws = aws.east
@@ -144,7 +164,7 @@ module "east-alb" {
     }
   }
 }
-/*module "east-lambda" {
+module "east-lambda" {
   source = "../../Modules/lambda"
   providers = {
     aws = aws.east
@@ -174,12 +194,12 @@ module "east-eb-app" {
   asg_max_size          = 1
   instance_type         = "t4g.nano"
   SSLCertificate_arn    = "arn:aws:acm:us-east-1:753047898568:certificate/c63037a4-caac-44e7-b06e-3cc472e5e0d6"
-}*/
+}
 module "attach-ec2-elb" {
   source = "../../Modules/attach2elb"
   target_group_arn = module.east-alb.alb_target_groups["http-tg"].arn
   target_ec2_id = module.east-ec2.ec2_instance_ids[0]
-}
+}*/ 
 
 
 
