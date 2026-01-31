@@ -43,7 +43,7 @@ module "east-vpc" {
   database_subnets   = ["10.0.111.0/24", "10.0.112.0/24"]
 }
 module "east-ec2" {
-  source                = "../../Modules/ec2"
+  source = "../../Modules/ec2"
   providers = {
     aws = aws.east
   }
@@ -176,9 +176,9 @@ module "east-eb-app" {
   SSLCertificate_arn    = "arn:aws:acm:us-east-1:753047898568:certificate/c63037a4-caac-44e7-b06e-3cc472e5e0d6"
 }*/
 module "attach-ec2-elb" {
-  source = "../../Modules/attach2elb"
+  source           = "../../Modules/attach2elb"
   target_group_arn = module.east-alb.alb_target_groups["http-tg"].arn
-  target_ec2_id = module.east-ec2.ec2_instance_ids[0]
+  target_ec2_id    = module.east-ec2.ec2_instance_ids[0]
 }
 
 
