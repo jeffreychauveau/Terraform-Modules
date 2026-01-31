@@ -42,7 +42,7 @@ module "east-vpc" {
   public_subnets     = ["10.0.1.0/24", "10.0.2.0/24"]
   database_subnets   = ["10.0.111.0/24", "10.0.112.0/24"]
 }
-/*module "east-ec2" {
+module "east-ec2" {
   source                = "../../Modules/ec2"
   providers = {
     aws = aws.east
@@ -62,7 +62,7 @@ module "east-vpc" {
       sudo systemctl enable httpd
       echo "<html><h1>Welcome to EAST $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
   EOF
-}*/
+}
 module "east-http-sg" {
   source = "../../Modules/csg"
   providers = {
@@ -155,7 +155,7 @@ module "east-alb" {
   runtime = "python3.14"
   source_path = "./src/lambda_function.py"
   create_lambda_function_url = true
-}*/
+}
 module "east-eb-app" {
   source                = "../../Modules/beanstalk"
   app_name              = "Dev-App"
@@ -174,6 +174,11 @@ module "east-eb-app" {
   asg_max_size          = 1
   instance_type         = "t4g.nano"
   SSLCertificate_arn    = "arn:aws:acm:us-east-1:753047898568:certificate/c63037a4-caac-44e7-b06e-3cc472e5e0d6"
+}*/
+module "attach-ec2-elb" {
+  source = "../../Modules/attach2elb"
+  target_group_arn = module.east-alb.alb_target_groups["http-tg"].arn
+  target_ec2_id = module.east-ec2.ec2_instance_ids[0]
 }
 
 
