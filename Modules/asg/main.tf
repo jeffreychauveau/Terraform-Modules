@@ -12,7 +12,7 @@ data "aws_ami" "amazon_ami" {
 
   filter {
     name   = "name"
-    values = ["al2023-ami-2023.*-*"]
+    values = ["al2023-ami-2023.*-*arm64"]
   }
 
   filter {
@@ -43,7 +43,7 @@ module "asg" {
   # Traffic source attachment
   traffic_source_attachments = {
     ex-alb = {
-      traffic_source_identifier = module.alb.target_groups["ex_asg"].arn
+      traffic_source_identifier = var.alb_tg_arn
       traffic_source_type       = "elbv2" # default
     }
   }
@@ -71,94 +71,8 @@ module "asg" {
   }
 
   network_interfaces = [{
-    security_groups             = [module.asg_sg.security_group_id]
+    security_groups             = [var.security_group_id]
     associate_public_ip_address = true
 
   }]
-}
-
-module "alb" {
-  source  = "terraform-aws-modules/alb/aws"
-  version = "~> 9.0"
-
-  name = var.asg_name
-
-  vpc_id  = var.vpc_id
-  subnets = var.vpc_public_subnets
-
-  # For example only
-  enable_deletion_protection = false
-
-  # Security Group
-  security_group_ingress_rules = {
-    all_http = {
-      from_port   = 80
-      to_port     = 80
-      ip_protocol = "tcp"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-    all_https = {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-  }
-  security_group_egress_rules = {
-    all = {
-      ip_protocol = "-1"
-      cidr_ipv4   = var.vpc_cidr_block
-    }
-  }
-
-  listeners = {
-    ex_http = {
-      port     = 80
-      protocol = "HTTP"
-      redirect = {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-    ex_https = {
-      port            = 443
-      protocol        = "HTTPS"
-      certificate_arn = "arn:aws:acm:us-east-1:753047898568:certificate/c63037a4-caac-44e7-b06e-3cc472e5e0d6"
-      forward = {
-        target_group_key = "ex_asg"
-      }
-    }
-  }
-
-  target_groups = {
-    ex_asg = {
-      backend_protocol                  = "HTTP"
-      backend_port                      = 80
-      target_type                       = "instance"
-      deregistration_delay              = 5
-      load_balancing_cross_zone_enabled = false
-
-      # There's nothing to attach here in this definition.
-      # The attachment happens in the ASG module above
-      create_attachment = false
-    }
-  }
-}
-
-module "asg_sg" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 5.0"
-
-  name        = var.asg_name
-  description = "A security group"
-  vpc_id      = var.vpc_id
-
-  computed_ingress_with_source_security_group_id = [{
-    rule                     = "http-80-tcp"
-    source_security_group_id = module.alb.security_group_id
-  }]
-  number_of_computed_ingress_with_source_security_group_id = 1
-
-  egress_rules = ["all-all"]
 }

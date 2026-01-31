@@ -13,5 +13,7 @@ variable "asg_desired_capacity" {
 }
 variable "user_data" {}
 variable "asg_instance_type" {
-  default = "t3a.nano"
+  default = "t4g.nano"
 }
+variable "alb_tg_arn" {}
+variable "security_group_id" {}

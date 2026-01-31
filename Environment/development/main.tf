@@ -42,7 +42,7 @@ module "east-vpc" {
   public_subnets     = ["10.0.1.0/24", "10.0.2.0/24"]
   database_subnets   = ["10.0.111.0/24", "10.0.112.0/24"]
 }
-module "east-ec2" {
+/*module "east-ec2" {
   source = "../../Modules/ec2"
   providers = {
     aws = aws.east
@@ -143,7 +143,7 @@ module "east-alb" {
       port              = 80
     }
   }
-}
+}*/
 /*module "east-lambda" {
   source = "../../Modules/lambda"
   providers = {
@@ -174,13 +174,33 @@ module "east-eb-app" {
   asg_max_size          = 1
   instance_type         = "t4g.nano"
   SSLCertificate_arn    = "arn:aws:acm:us-east-1:753047898568:certificate/c63037a4-caac-44e7-b06e-3cc472e5e0d6"
-}*/
+}
 module "attach-ec2-elb" {
   source           = "../../Modules/attach2elb"
   target_group_arn = module.east-alb.alb_target_groups["http-tg"].arn
   target_ec2_id    = module.east-ec2.ec2_instance_ids[0]
 }
-
+## ASG uses VPC, elb, sg Modules
+module "east-asg" {
+  source = "../../Modules/asg"
+  asg_name = "east-asg"
+  vpc_id = module.east-vpc.vpc_id
+  vpc_cidr_block = module.east-vpc.vpc_cidr_block
+  vpc_public_subnets = module.east-vpc.public_subnets
+  alb_tg_arn = module.east-alb.alb_target_groups["http-tg"].arn
+  security_group_id = module.east-http-sg.sg_id
+  asg_min_size = 1
+  asg_max_size = 2
+  asg_desired_capacity = 1
+  user_data = <<-EOF
+      #!/bin/bash
+      sudo dnf update -y
+      sudo dnf install -y httpd
+      sudo systemctl start httpd
+      sudo systemctl enable httpd
+      echo "<html><h1>Welcome to $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
+  EOF
+}*/
 
 
 
@@ -455,25 +475,6 @@ module "west-alb" {
     ingress_with_sg = 1
     egress_with_cidr = 1
   }]
-}*/
-## Use ASG only with VPC, Module creates security groups, elb, ec2, and sg
-/*module "my-asg" {
-  source = "../../Modules/asg"
-  asg_name = "my-asg"
-  vpc_id = module.my-vpc.vpc_id
-  vpc_cidr_block = module.my-vpc.vpc_cidr_block
-  vpc_public_subnets = module.my-vpc.public_subnets
-  asg_min_size = 1
-  asg_max_size = 2
-  asg_desired_capacity = 1
-  user_data = <<-EOF
-      #!/bin/bash
-      sudo dnf update -y
-      sudo dnf install -y httpd
-      sudo systemctl start httpd
-      sudo systemctl enable httpd
-      echo "<html><h1>Welcome to $(hostname) over HTTPS! (Self-signed cert)</h1></html>" > /var/www/html/index.html
-  EOF
 }*/
 /*
 module "my-s3" {
